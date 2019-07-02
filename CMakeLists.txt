@@ -19,11 +19,13 @@ set(LibName lua_al2o3_os)
 project(${LibName})
 
 set(Interface
-		filesystem.h
+		os.h
 		)
 
 set(Src
+		direnum.cpp
 		filesystem.cpp
+		os.cpp
 		)
 
 set(Deps

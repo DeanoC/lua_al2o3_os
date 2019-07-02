@@ -6,14 +6,6 @@ extern lua_CFunction LuaOs_DirectoryEnumeratorInit(lua_State* L);
 
 static char const FileSystemMetaName[] = "Al2o3.Os.filesystem";
 
-static int createFilesystem(lua_State* L) {
-	// file system doesn't have any state (all 'static' function)
-	// the ud is just a dummy and no need for garbage collection
-	// its a bit wasteful but easy to extend if its stops being a pure static library
-	lua_newuserdata(L, sizeof(uint8_t));
-	return 1;
-}
-
 static int isAbsolutePath(lua_State* L) {
 	char const* path = luaL_checkstring(L, 1);
 	bool absolute = Os_IsAbsolutePath(path);
@@ -80,32 +72,29 @@ static int systemRun(lua_State* L) {
 	return 1;
 }
 
-lua_CFunction LuaOs_FileSystemInit(lua_State* L) {
-	const struct luaL_Reg filesystemFuncTable [] = {
-			{"create", 	LuaOs_DirectoryEnumeratorInit(L) },
+int LuaOs_FileSystemInit(lua_State* L) {
+
+	static luaL_Reg const filesystemFuncTable[] = {
+			{"directoryEnumeratorCreate", 	LuaOs_DirectoryEnumeratorInit(L) },
 			{"isAbsolutePath", &isAbsolutePath},
-//			{"splitPath", &splitPath}, // might be best to have a native Lua path system...
-//			{"replaceExtension", &replaceExtension},
-//			{"getParentPath", &getParentPath},
-//			{"getCurrentDir", },
-			{"setCurrentDir", setCurrentDir},
+			//			{"splitPath", &splitPath}, // might be best to have a native Lua path system...
+			//			{"replaceExtension", &replaceExtension},
+			//			{"getParentPath", &getParentPath},
+			//			{"getCurrentDir", },
+			{"setCurrentDir", &setCurrentDir},
 
-			{"fileExists", fileExists},
-			{"dirExists", dirExists},
+			{"fileExists", &fileExists},
+			{"dirExists", &dirExists},
 
-			{"fileCopy", fileCopy},
-			{"fileDelete", fileDelete},
+			{"fileCopy", &fileCopy},
+			{"fileDelete", &fileDelete},
 			{"dirCreate", },
-	//		{"SystemRun", },
+			//		{"SystemRun", },
 
 			{nullptr, nullptr}  /* sentinel */
 	};
+	luaL_newlib(L, filesystemFuncTable);
 
-	luaL_newmetatable(L, FileSystemMetaName);
-	lua_pushvalue(L, -1);
-	lua_setfield(L, -2, "__index");
-	luaL_setfuncs(L, filesystemFuncTable, 0);
-
-	return &createFilesystem;
+	return 1;
 }
 

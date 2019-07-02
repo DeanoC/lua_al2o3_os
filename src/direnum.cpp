@@ -1,5 +1,6 @@
 #include "al2o3_platform/platform.h"
 #include "lua_base5.3/lua.hpp"
+#include "lua_base5.3/utils.h"
 #include "al2o3_os/filesystem.h"
 
 static char const DirectoryEnumMetaName[] = "Al2o3.Os.DirectoryEnum";
@@ -23,10 +24,26 @@ static int direnumud_gc (lua_State *L) {
 	return 0;
 }
 
+static int directoryEnumeratorNext(lua_State *L) {
+	auto handle = *(Os_DirectoryEnumeratorHandle*)luaL_checkudata(L, lua_upvalueindex(1), DirectoryEnumMetaName);
+	LUA_ASSERT(handle, L, "directoryEnumeratorNext error");
+	auto item = Os_DirectoryEnumeratorSyncNext(handle);
+	if(item) {
+		lua_pushstring(L, item->filename);
+		lua_pushboolean(L, item->directory);
+		return 2;
+	} else {
+		return 0;
+	}
+
+}
+
 static int createDirectoryEnumerator(lua_State* L) {
 	char const* path = luaL_checkstring(L, 1);
 	auto ud = direnumud_create(L);
 	*ud = Os_DirectoryEnumeratorCreate(path);
+	LUA_ASSERT(*ud, L, "Directory Enumerator create failed");
+	lua_pushcclosure(L, &directoryEnumeratorNext, 1);
 	return 1;
 }
 
