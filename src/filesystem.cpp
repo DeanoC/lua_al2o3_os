@@ -6,16 +6,22 @@ extern lua_CFunction LuaOs_DirectoryEnumeratorInit(lua_State* L);
 
 static char const FileSystemMetaName[] = "Al2o3.Os.filesystem";
 
-static int isAbsolutePath(lua_State* L) {
+/*static int isAbsolutePath(lua_State* L) {
 	char const* path = luaL_checkstring(L, 1);
 	bool absolute = Os_IsAbsolutePath(path);
 	lua_pushboolean(L, absolute);
 	return 1;
-}
+}*/
 
 static int getCurrentPath(lua_State* L) {
-	char const* path = luaL_checkstring(L, 1);
-	ASSERT(false);
+	char tmp[2048];
+	bool okay = Os_GetCurrentDir(tmp, 2048);
+	if(okay) {
+		lua_pushstring(L, tmp);
+	} else
+	{
+		lua_pushnil(L);
+	}
 
 	return 1;
 }
@@ -76,7 +82,7 @@ int LuaOs_FileSystemInit(lua_State* L) {
 
 	static luaL_Reg const filesystemFuncTable[] = {
 			{"directoryEnumeratorCreate", 	LuaOs_DirectoryEnumeratorInit(L) },
-			{"isAbsolutePath", &isAbsolutePath},
+	//		{"isAbsolutePath", &isAbsolutePath},
 			//			{"splitPath", &splitPath}, // might be best to have a native Lua path system...
 			//			{"replaceExtension", &replaceExtension},
 			//			{"getParentPath", &getParentPath},
@@ -88,7 +94,7 @@ int LuaOs_FileSystemInit(lua_State* L) {
 
 			{"fileCopy", &fileCopy},
 			{"fileDelete", &fileDelete},
-			{"dirCreate", },
+			{"dirCreate", &dirCreate },
 			//		{"SystemRun", },
 
 			{nullptr, nullptr}  /* sentinel */
